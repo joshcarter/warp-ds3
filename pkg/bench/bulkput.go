@@ -47,20 +47,24 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 
 				objs := make(map[string]*generator.Object, u.BulkNum)
 				ds3objs := make([]models.Ds3PutObject, u.BulkNum)
+				totalSize := int64(0)
+
 				for j := 0; j < u.BulkNum; j++ {
 					obj := u.Source().Object() // Create a new generator for each object
 					objs[obj.Name] = obj
 					ds3objs[j] = models.Ds3PutObject{obj.Name, obj.Size}
+					totalSize += obj.Size
 				}
 
 				op := Operation{
 					OpType:   "BULKPUT",
 					Thread:   uint16(i),
-					Size:     ds3objs[0].Size * int64(u.BulkNum), // FIXME: sum the sizes properly
+					Size:     totalSize,
 					File:     ds3objs[0].Name,
 					ObjPerOp: u.BulkNum,
 					Endpoint: u.Endpoint,
 				}
+				op.Start = time.Now()
 				client, cldone := u.Client()
 
 				putBulkRequest := models.NewPutBulkJobSpectraS3Request(u.Bucket, ds3objs)
@@ -99,6 +103,7 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 
 								_, err = client.PutObject(putObjRequest)
 								if err != nil {
+									op.Err = err.Error()
 									log.Fatal(err)
 								}
 								// fmt.Printf("Sent: %s offset=%d length=%d\n", *curObj.Name, curObj.Offset, curObj.Length)
@@ -111,7 +116,7 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 						time.Sleep(time.Second * 5)
 					}
 				}
-
+				op.End = time.Now()
 				cldone()
 				rcv <- op
 			}
