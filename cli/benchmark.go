@@ -30,13 +30,13 @@ import (
 	"time"
 
 	"github.com/cheggaaa/pb"
+	"github.com/joshcarter/warp-ds3/api"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 	"github.com/klauspost/compress/zstd"
 	"github.com/minio/cli"
 	"github.com/minio/madmin-go/v2"
 	"github.com/minio/mc/pkg/probe"
 	"github.com/minio/pkg/console"
-	"github.com/minio/warp/api"
-	"github.com/minio/warp/pkg/bench"
 )
 
 var benchFlags = []cli.Flag{

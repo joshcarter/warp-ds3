@@ -18,10 +18,10 @@
 package cli
 
 import (
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 	"github.com/minio/cli"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/pkg/console"
-	"github.com/minio/warp/pkg/bench"
 )
 
 var putFlags = []cli.Flag{

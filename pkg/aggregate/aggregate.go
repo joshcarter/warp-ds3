@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/minio/warp/pkg/bench"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 )
 
 // Aggregated contains aggregated data for a single benchmark run.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/SpectraLogic/ds3_go_sdk/ds3/models"
 	"github.com/SpectraLogic/ds3_go_sdk/helpers"
-	"github.com/minio/warp/pkg/generator"
+	"github.com/joshcarter/warp-ds3/pkg/generator"
 	"log"
 	"net/http"
 	"sync"

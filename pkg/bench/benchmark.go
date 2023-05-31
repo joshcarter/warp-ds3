@@ -25,9 +25,9 @@ import (
 	"math"
 	"time"
 
+	"github.com/joshcarter/warp-ds3/pkg/generator"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/pkg/console"
-	"github.com/minio/warp/pkg/generator"
 )
 
 type Benchmark interface {

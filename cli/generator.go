@@ -25,8 +25,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/minio/mc/pkg/probe"
 
+	"github.com/joshcarter/warp-ds3/pkg/generator"
 	"github.com/minio/cli"
-	"github.com/minio/warp/pkg/generator"
 )
 
 var genFlags = []cli.Flag{

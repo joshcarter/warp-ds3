@@ -28,11 +28,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/joshcarter/warp-ds3/api"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 	"github.com/klauspost/compress/zstd"
 	"github.com/minio/cli"
 	"github.com/minio/mc/pkg/probe"
-	"github.com/minio/warp/api"
-	"github.com/minio/warp/pkg/bench"
 	"github.com/minio/websocket"
 )
 

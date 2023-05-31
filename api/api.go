@@ -26,10 +26,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/joshcarter/warp-ds3/pkg/aggregate"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 	"github.com/klauspost/compress/zstd"
 	"github.com/minio/pkg/console"
-	"github.com/minio/warp/pkg/aggregate"
-	"github.com/minio/warp/pkg/bench"
 )
 
 // BenchmarkStatus contains information when a benchmark is running.

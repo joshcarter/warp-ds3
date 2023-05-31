@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/minio/warp/pkg/bench"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 )
 
 // SingleSizedRequests contains statistics when all objects have the same size.

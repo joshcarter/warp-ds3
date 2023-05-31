@@ -29,13 +29,13 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/joshcarter/warp-ds3/api"
+	"github.com/joshcarter/warp-ds3/pkg/aggregate"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 	"github.com/klauspost/compress/zstd"
 	"github.com/minio/cli"
 	"github.com/minio/mc/pkg/probe"
 	"github.com/minio/pkg/console"
-	"github.com/minio/warp/api"
-	"github.com/minio/warp/pkg/aggregate"
-	"github.com/minio/warp/pkg/bench"
 )
 
 var analyzeFlags = []cli.Flag{

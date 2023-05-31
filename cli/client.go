@@ -30,12 +30,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joshcarter/warp-ds3/pkg"
 	"github.com/minio/cli"
 	"github.com/minio/madmin-go/v2"
 	"github.com/minio/mc/pkg/probe"
 	"github.com/minio/pkg/certs"
 	"github.com/minio/pkg/ellipses"
-	"github.com/minio/warp/pkg"
 	"golang.org/x/net/http2"
 )
 

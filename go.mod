@@ -1,4 +1,4 @@
-module github.com/minio/warp
+module github.com/joshcarter/warp-ds3
 
 go 1.18
 
@@ -14,6 +14,7 @@ require (
 	github.com/minio/mc v0.0.0-20230221173238-1843bab50013
 	github.com/minio/minio-go/v7 v7.0.50
 	github.com/minio/pkg v1.6.3
+	github.com/minio/warp v0.6.9
 	github.com/minio/websocket v1.6.0
 	github.com/posener/complete v1.2.3
 	github.com/secure-io/sio-go v0.3.1

@@ -29,12 +29,12 @@ import (
 
 	mprofile "github.com/bygui86/multi-profile/v2"
 	"github.com/cheggaaa/pb"
+	"github.com/joshcarter/warp-ds3/pkg"
 	"github.com/minio/cli"
 	"github.com/minio/mc/pkg/probe"
 	"github.com/minio/pkg/console"
 	"github.com/minio/pkg/trie"
 	"github.com/minio/pkg/words"
-	"github.com/minio/warp/pkg"
 	completeinstall "github.com/posener/complete/cmd/install"
 )
 

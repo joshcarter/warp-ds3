@@ -22,7 +22,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/minio/warp/pkg/bench"
+	"github.com/joshcarter/warp-ds3/pkg/bench"
 )
 
 // Throughput contains throughput.
