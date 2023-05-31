@@ -19,7 +19,6 @@ package bench
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -47,9 +46,6 @@ func (u *Put) Start(ctx context.Context, wait chan struct{}) (Operations, error)
 	}
 	u.prefixes = make(map[string]struct{}, u.Concurrency)
 
-	// Non-terminating context.
-	nonTerm := context.Background()
-
 	for i := 0; i < u.Concurrency; i++ {
 		src := u.Source()
 		u.prefixes[src.Prefix()] = struct{}{}
@@ -68,32 +64,34 @@ func (u *Put) Start(ctx context.Context, wait chan struct{}) (Operations, error)
 				}
 				obj := src.Object()
 				opts.ContentType = obj.ContentType
-				client, cldone := u.Client()
+				// client, cldone := u.Client()
+				_, cldone := u.Client()
 				op := Operation{
 					OpType:   http.MethodPut,
 					Thread:   uint16(i),
 					Size:     obj.Size,
 					File:     obj.Name,
 					ObjPerOp: 1,
-					Endpoint: client.EndpointURL().String(),
+					Endpoint: u.Endpoint,
 				}
 				op.Start = time.Now()
-				res, err := client.PutObject(nonTerm, u.Bucket, obj.Name, obj.Reader, obj.Size, opts)
-				op.End = time.Now()
-				if err != nil {
-					u.Error("upload error: ", err)
-					op.Err = err.Error()
-				}
-				obj.VersionID = res.VersionID
-
-				if res.Size != obj.Size && op.Err == "" {
-					err := fmt.Sprint("short upload. want:", obj.Size, ", got:", res.Size)
-					if op.Err == "" {
-						op.Err = err
-					}
-					u.Error(err)
-				}
-				op.Size = res.Size
+				// TODO
+				//res, err := client.PutObject(nonTerm, u.Bucket, obj.Name, obj.Reader, obj.Size, opts)
+				//op.End = time.Now()
+				//if err != nil {
+				//	u.Error("upload error: ", err)
+				//	op.Err = err.Error()
+				//}
+				//obj.VersionID = res.VersionID
+				//
+				//if res.Size != obj.Size && op.Err == "" {
+				//	err := fmt.Sprint("short upload. want:", obj.Size, ", got:", res.Size)
+				//	if op.Err == "" {
+				//		op.Err = err
+				//	}
+				//	u.Error(err)
+				//}
+				//op.Size = res.Size
 				cldone()
 				rcv <- op
 			}
@@ -105,9 +103,4 @@ func (u *Put) Start(ctx context.Context, wait chan struct{}) (Operations, error)
 
 // Cleanup deletes everything uploaded to the bucket.
 func (u *Put) Cleanup(ctx context.Context) {
-	var pf []string
-	for p := range u.prefixes {
-		pf = append(pf, p)
-	}
-	u.deleteAllInBucket(ctx, pf...)
 }

@@ -1,4 +1,6 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/SpectraLogic/ds3_go_sdk v5.6.0+incompatible h1:RL1YMzMa8MRdZ/JRh/4yd3LLwu8+KNzWI9cQ0avxrPg=
+github.com/SpectraLogic/ds3_go_sdk v5.6.0+incompatible/go.mod h1:hfNdUVZZscbBj9/7t8x47Y+LTlqLGckwb0MVqNjZnqM=
 github.com/bygui86/multi-profile/v2 v2.1.0 h1:x/jPqeL/6hJqLXoDI/H5zLPsSFbDR6IEbrBbFpkWQdw=
 github.com/bygui86/multi-profile/v2 v2.1.0/go.mod h1:f4qCZiQo1nnJdwbPoADUtdDXg3hhnpfgZ9iq3/kW4BA=
 github.com/cheggaaa/pb v1.0.29 h1:FckUN5ngEk2LpvuG0fw1GEFx6LtyY2pWI/Z2QgCnEYo=

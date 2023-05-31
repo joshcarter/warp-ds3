@@ -19,10 +19,10 @@ package bench
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/SpectraLogic/ds3_go_sdk/ds3"
+	"github.com/SpectraLogic/ds3_go_sdk/ds3/models"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -47,12 +47,12 @@ type Benchmark interface {
 
 // Common contains common benchmark parameters.
 type Common struct {
-	Client func() (cl *minio.Client, done func())
+	Client func() (cl *ds3.Client, done func())
 
 	Concurrency int
 	Source      func() generator.Source
 	Bucket      string
-	Location    string
+	Endpoint    string
 	Locking     bool
 
 	// Running in client mode.
@@ -108,109 +108,40 @@ func (c *Common) ErrorF(format string, data ...interface{}) {
 func (c *Common) createEmptyBucket(ctx context.Context) error {
 	cl, done := c.Client()
 	defer done()
-	x, err := cl.BucketExists(ctx, c.Bucket)
+
+	headBucketRequest := models.NewHeadBucketRequest(c.Bucket)
+	_, err := cl.HeadBucket(headBucketRequest)
+	if err == nil {
+		console.Eraseline()
+		console.Infof("\rDeleting Bucket %q...", c.Bucket)
+
+		deleteBucketRequest := models.NewDeleteBucketSpectraS3Request(c.Bucket)
+		deleteBucketRequest.Force = true
+
+		// don't capture the error; the bucket may not exist and the DS3 response
+		// won't tell us the difference between "bucket wasn't there" and "bucket
+		// was there but I couldn't delete it."
+		cl.DeleteBucketSpectraS3(deleteBucketRequest)
+	}
+
+	console.Eraseline()
+	console.Infof("\rCreating Bucket %q...", c.Bucket)
+
+	putBucketRequest := models.NewPutBucketRequest(c.Bucket)
+	_, err = cl.PutBucket(putBucketRequest)
+
+	// In client mode someone else may have created it first.
+	// Check if it exists now.
+	// We don't test against a specific error since we might run against many different servers.
 	if err != nil {
-		return err
-	}
-
-	if x && c.Locking {
-		_, _, _, err := cl.GetBucketObjectLockConfig(ctx, c.Bucket)
-		if err != nil {
-			if !c.Clear {
-				return errors.New("not allowed to clear bucket to re-create bucket with locking")
-			}
-			if bvc, err := cl.GetBucketVersioning(ctx, c.Bucket); err == nil {
-				c.Versioned = bvc.Status == "Enabled"
-			}
-			console.Eraseline()
-			console.Infof("\rClearing Bucket %q to enable locking...", c.Bucket)
-			c.deleteAllInBucket(ctx)
-			err = cl.RemoveBucket(ctx, c.Bucket)
-			if err != nil {
-				return err
-			}
-			// Recreate bucket.
-			x = false
+		headBucketRequest = models.NewHeadBucketRequest(c.Bucket)
+		_, err2 := cl.HeadBucket(headBucketRequest)
+		if err2 != nil {
+			return err // return original error
 		}
 	}
 
-	if !x {
-		console.Eraseline()
-		console.Infof("\rCreating Bucket %q...", c.Bucket)
-		err := cl.MakeBucket(ctx, c.Bucket, minio.MakeBucketOptions{
-			Region:        c.Location,
-			ObjectLocking: c.Locking,
-		})
-		// In client mode someone else may have created it first.
-		// Check if it exists now.
-		// We don't test against a specific error since we might run against many different servers.
-		if err != nil {
-			x, err2 := cl.BucketExists(ctx, c.Bucket)
-			if err2 != nil {
-				return err2
-			}
-			if !x {
-				// It still doesn't exits, return original error.
-				return err
-			}
-		}
-	}
-	if bvc, err := cl.GetBucketVersioning(ctx, c.Bucket); err == nil {
-		c.Versioned = bvc.Status == "Enabled"
-	}
-
-	if c.Clear {
-		console.Eraseline()
-		console.Infof("\rClearing Bucket %q...", c.Bucket)
-		c.deleteAllInBucket(ctx)
-	}
 	return nil
-}
-
-// deleteAllInBucket will delete all content in a bucket.
-// If no prefixes are specified everything in bucket is deleted.
-func (c *Common) deleteAllInBucket(ctx context.Context, prefixes ...string) {
-	if len(prefixes) == 0 {
-		prefixes = []string{""}
-	}
-
-	doneCh := make(chan struct{})
-	defer close(doneCh)
-
-	cl, done := c.Client()
-	defer done()
-
-	objectsCh := make(chan minio.ObjectInfo)
-	go func() {
-		defer close(objectsCh)
-		opts := minio.ListObjectsOptions{
-			Recursive:    true,
-			WithVersions: c.Versioned,
-		}
-		for _, prefix := range prefixes {
-			opts.Prefix = prefix
-			if prefix != "" {
-				opts.Prefix = prefix + "/"
-			}
-			for object := range cl.ListObjects(ctx, c.Bucket, opts) {
-				if object.Err != nil {
-					c.Error(object.Err)
-					return
-				}
-				objectsCh <- object
-			}
-			console.Eraseline()
-			console.Infof("\rClearing Prefix %q...", strings.Join([]string{c.Bucket, opts.Prefix}, "/"))
-		}
-	}()
-
-	errCh := cl.RemoveObjects(ctx, c.Bucket, objectsCh, minio.RemoveObjectsOptions{GovernanceBypass: true})
-	for err := range errCh {
-		if err.Err != nil {
-			c.Error(err.Err)
-			continue
-		}
-	}
 }
 
 // prepareProgress updates preparation progess with the value 0->1.

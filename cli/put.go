@@ -67,7 +67,7 @@ func mainPut(ctx *cli.Context) error {
 			Concurrency: ctx.Int("concurrent"),
 			Source:      src,
 			Bucket:      ctx.String("bucket"),
-			Location:    "",
+			Endpoint:    "",
 			PutOpts:     putOpts(ctx),
 		},
 	}

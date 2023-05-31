@@ -21,24 +21,19 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"github.com/SpectraLogic/ds3_go_sdk/ds3"
+	"github.com/SpectraLogic/ds3_go_sdk/ds3/networking"
 	"log"
-	"math"
-	"math/rand"
 	"net"
 	"net/http"
-	"os"
+	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/minio/cli"
 	"github.com/minio/madmin-go/v2"
 	"github.com/minio/mc/pkg/probe"
-	md5simd "github.com/minio/md5-simd"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/pkg/certs"
-	"github.com/minio/pkg/console"
 	"github.com/minio/pkg/ellipses"
 	"github.com/minio/warp/pkg"
 	"golang.org/x/net/http2"
@@ -51,128 +46,31 @@ const (
 	hostSelectTypeWeighed    hostSelectType = "weighed"
 )
 
-func newClient(ctx *cli.Context) func() (cl *minio.Client, done func()) {
+func newClient(ctx *cli.Context) func() (cl *ds3.Client, done func()) {
 	hosts := parseHosts(ctx.String("host"), ctx.Bool("resolve-host"))
-	switch len(hosts) {
-	case 0:
-		fatalIf(probe.NewError(errors.New("no host defined")), "Unable to create MinIO client")
-	case 1:
-		cl, err := getClient(ctx, hosts[0])
-		fatalIf(probe.NewError(err), "Unable to create MinIO client")
+	if len(hosts) == 0 {
+		fatalIf(probe.NewError(errors.New("no host defined")), "Unable to create DS3 client")
+	}
+	if len(hosts) > 1 {
+		fatalIf(probe.NewError(errors.New("DS3 only supports one host")), "DS3 only supports one host")
+	}
 
-		return func() (*minio.Client, func()) {
-			return cl, func() {}
-		}
+	cl, err := getClient(ctx, hosts[0])
+	fatalIf(probe.NewError(err), "Unable to create DS3 client")
+
+	return func() (*ds3.Client, func()) {
+		return cl, func() {}
 	}
-	hostSelect := hostSelectType(ctx.String("host-select"))
-	switch hostSelect {
-	case hostSelectTypeRoundrobin:
-		// Do round-robin.
-		var current int
-		var mu sync.Mutex
-		clients := make([]*minio.Client, len(hosts))
-		for i := range hosts {
-			cl, err := getClient(ctx, hosts[i])
-			fatalIf(probe.NewError(err), "Unable to create MinIO client")
-			clients[i] = cl
-		}
-		return func() (*minio.Client, func()) {
-			mu.Lock()
-			now := current % len(clients)
-			current++
-			mu.Unlock()
-			return clients[now], func() {}
-		}
-	case hostSelectTypeWeighed:
-		// Keep track of handed out clients.
-		// Select random between the clients that have the fewest handed out.
-		var mu sync.Mutex
-		clients := make([]*minio.Client, len(hosts))
-		for i := range hosts {
-			cl, err := getClient(ctx, hosts[i])
-			fatalIf(probe.NewError(err), "Unable to create MinIO client")
-			clients[i] = cl
-		}
-		running := make([]int, len(hosts))
-		lastFinished := make([]time.Time, len(hosts))
-		{
-			// Start with a random host
-			now := time.Now()
-			off := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(len(hosts))
-			for i := range lastFinished {
-				lastFinished[i] = now.Add(time.Duration(i + off%len(hosts)))
-			}
-		}
-		find := func() int {
-			min := math.MaxInt32
-			for _, n := range running {
-				if n < min {
-					min = n
-				}
-			}
-			earliest := time.Now().Add(time.Second)
-			earliestIdx := 0
-			for i, n := range running {
-				if n == min {
-					if lastFinished[i].Before(earliest) {
-						earliest = lastFinished[i]
-						earliestIdx = i
-					}
-				}
-			}
-			return earliestIdx
-		}
-		return func() (*minio.Client, func()) {
-			mu.Lock()
-			idx := find()
-			running[idx]++
-			mu.Unlock()
-			return clients[idx], func() {
-				mu.Lock()
-				lastFinished[idx] = time.Now()
-				running[idx]--
-				if running[idx] < 0 {
-					// Will happen if done is called twice.
-					panic("client running index < 0")
-				}
-				mu.Unlock()
-			}
-		}
-	}
-	console.Fatalln("unknown host-select:", hostSelect)
-	return nil
 }
 
 // getClient creates a client with the specified host and the options set in the context.
-func getClient(ctx *cli.Context, host string) (*minio.Client, error) {
-	var creds *credentials.Credentials
-	switch strings.ToUpper(ctx.String("signature")) {
-	case "S3V4":
-		// if Signature version '4' use NewV4 directly.
-		creds = credentials.NewStaticV4(ctx.String("access-key"), ctx.String("secret-key"), "")
-	case "S3V2":
-		// if Signature version '2' use NewV2 directly.
-		creds = credentials.NewStaticV2(ctx.String("access-key"), ctx.String("secret-key"), "")
-	default:
-		fatal(probe.NewError(errors.New("unknown signature method. S3V2 and S3V4 is available")), strings.ToUpper(ctx.String("signature")))
-	}
-
-	cl, err := minio.New(host, &minio.Options{
-		Creds:        creds,
-		Secure:       ctx.Bool("tls"),
-		Region:       ctx.String("region"),
-		BucketLookup: minio.BucketLookupAuto,
-		CustomMD5:    md5simd.NewServer().NewHash,
-		Transport:    clientTransport(ctx),
-	})
-	if err != nil {
-		return nil, err
-	}
-	cl.SetAppInfo(appName, pkg.Version)
-
-	if ctx.Bool("debug") {
-		cl.TraceOn(os.Stderr)
-	}
+func getClient(ctx *cli.Context, host string) (*ds3.Client, error) {
+	cl := ds3.NewClientBuilder(
+		&url.URL{Scheme: "http", Host: host},
+		&networking.Credentials{
+			AccessId: ctx.String("access-key"),
+			Key:      ctx.String("secret-key")}).
+		BuildClient()
 
 	return cl, nil
 }
@@ -214,9 +112,7 @@ func clientTransport(ctx *cli.Context) http.RoundTripper {
 
 		// Because we create a custom TLSClientConfig, we have to opt-in to HTTP/2.
 		// See https://github.com/golang/go/issues/14275
-		if ctx.Bool("http2") {
-			http2.ConfigureTransport(tr)
-		}
+		http2.ConfigureTransport(tr)
 	}
 	return tr
 }

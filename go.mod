@@ -3,6 +3,7 @@ module github.com/minio/warp
 go 1.18
 
 require (
+	github.com/SpectraLogic/ds3_go_sdk v5.6.0+incompatible
 	github.com/bygui86/multi-profile/v2 v2.1.0
 	github.com/cheggaaa/pb v1.0.29
 	github.com/dustin/go-humanize v1.0.1
@@ -11,7 +12,6 @@ require (
 	github.com/minio/cli v1.24.2
 	github.com/minio/madmin-go/v2 v2.0.14
 	github.com/minio/mc v0.0.0-20230221173238-1843bab50013
-	github.com/minio/md5-simd v1.1.2
 	github.com/minio/minio-go/v7 v7.0.50
 	github.com/minio/pkg v1.6.3
 	github.com/minio/websocket v1.6.0
@@ -39,6 +39,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

@@ -85,18 +85,8 @@ func Main(args []string) {
 
 func init() {
 	a := []cli.Command{
-		mixedCmd,
-		getCmd,
+		bulkPutCmd,
 		putCmd,
-		deleteCmd,
-		listCmd,
-		statCmd,
-		selectCmd,
-		versionedCmd,
-		retentionCmd,
-		multipartCmd,
-		zipCmd,
-		snowballCmd,
 	}
 	b := []cli.Command{
 		analyzeCmd,
