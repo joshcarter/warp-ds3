@@ -72,7 +72,7 @@ func checkBulkPutSyntax(ctx *cli.Context) {
 	if ctx.NArg() > 0 {
 		console.Fatal("Command takes no arguments")
 	}
-	if ctx.Int("bulk.qty") <= 0 {
+	if ctx.Int("bulk.num") <= 0 {
 		console.Fatal("Bulk operation must have more than 0 objects.")
 	}
 
