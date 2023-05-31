@@ -33,7 +33,6 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 	}
 
 	for i := 0; i < u.Concurrency; i++ {
-		src := u.Source()
 		go func(i int) {
 			rcv := c.Receiver()
 			defer wg.Done()
@@ -50,15 +49,15 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 				objs := make(map[string]*generator.Object, u.BulkNum)
 				ds3objs := make([]models.Ds3PutObject, u.BulkNum)
 				for j := 0; j < u.BulkNum; j++ {
-					obj := src.Object()
-					objs[obj.Name] = obj // TODO: is this lightweight enough that I can get a bunch upfront?
+					obj := u.Source().Object() // Create a new generator for each object
+					objs[obj.Name] = obj
 					ds3objs[j] = models.Ds3PutObject{obj.Name, obj.Size}
 				}
 
 				op := Operation{
 					OpType:   "BULKPUT",
 					Thread:   uint16(i),
-					Size:     ds3objs[0].Size * int64(u.BulkNum),
+					Size:     ds3objs[0].Size * int64(u.BulkNum), // FIXME: sum the sizes properly
 					File:     ds3objs[0].Name,
 					ObjPerOp: u.BulkNum,
 					Endpoint: u.Endpoint,
@@ -113,32 +112,6 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 						time.Sleep(time.Second * 5)
 					}
 				}
-
-				//
-				//
-				// old
-				//
-				//
-				//obj := src.Object()
-				//opts.ContentType = obj.ContentType
-				//
-				//op.Start = time.Now()
-				//res, err := client.PutObject(nonTerm, u.Bucket, obj.Name, obj.Reader, obj.Size, opts)
-				//op.End = time.Now()
-				//if err != nil {
-				//	u.Error("upload error: ", err)
-				//	op.Err = err.Error()
-				//}
-				//obj.VersionID = res.VersionID
-				//
-				//if res.Size != obj.Size && op.Err == "" {
-				//	err := fmt.Sprint("short upload. want:", obj.Size, ", got:", res.Size)
-				//	if op.Err == "" {
-				//		op.Err = err
-				//	}
-				//	u.Error(err)
-				//}
-				//op.Size = res.Size
 
 				cldone()
 				rcv <- op
