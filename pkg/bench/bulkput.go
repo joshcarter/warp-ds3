@@ -2,7 +2,6 @@ package bench
 
 import (
 	"context"
-	"fmt"
 	"github.com/SpectraLogic/ds3_go_sdk/ds3/models"
 	"github.com/SpectraLogic/ds3_go_sdk/helpers"
 	"github.com/joshcarter/warp-ds3/pkg/generator"
@@ -102,7 +101,7 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 								if err != nil {
 									log.Fatal(err)
 								}
-								fmt.Printf("Sent: %s offset=%d length=%d\n", *curObj.Name, curObj.Offset, curObj.Length)
+								// fmt.Printf("Sent: %s offset=%d length=%d\n", *curObj.Name, curObj.Offset, curObj.Length)
 							}
 							curChunkCount++
 						}
