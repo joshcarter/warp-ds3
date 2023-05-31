@@ -51,7 +51,7 @@ func mainBulkPut(ctx *cli.Context) error {
 			Endpoint:    parseHosts(ctx.String("host"), ctx.Bool("resolve-host"))[0], // FIXME: ugly
 			PutOpts:     bulkPutOpts(ctx),
 		},
-		BulkNum: ctx.Int("bulk.qty"),
+		BulkNum: ctx.Int("bulk.num"),
 	}
 	return runBench(ctx, &b)
 }
