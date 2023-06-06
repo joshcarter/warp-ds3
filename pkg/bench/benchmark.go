@@ -112,16 +112,17 @@ func (c *Common) createEmptyBucket(ctx context.Context) error {
 	headBucketRequest := models.NewHeadBucketRequest(c.Bucket)
 	_, err := cl.HeadBucket(headBucketRequest)
 	if err == nil {
-		console.Eraseline()
-		console.Infof("\rDeleting Bucket %q...", c.Bucket)
-
-		deleteBucketRequest := models.NewDeleteBucketSpectraS3Request(c.Bucket)
-		deleteBucketRequest.Force = true
-
-		// don't capture the error; the bucket may not exist and the DS3 response
-		// won't tell us the difference between "bucket wasn't there" and "bucket
-		// was there but I couldn't delete it."
-		cl.DeleteBucketSpectraS3(deleteBucketRequest)
+		//console.Eraseline()
+		//console.Infof("\rDeleting Bucket %q...", c.Bucket)
+		//
+		//deleteBucketRequest := models.NewDeleteBucketSpectraS3Request(c.Bucket)
+		//deleteBucketRequest.Force = true
+		//
+		//// don't capture the error; the bucket may not exist and the DS3 response
+		//// won't tell us the difference between "bucket wasn't there" and "bucket
+		//// was there but I couldn't delete it."
+		//cl.DeleteBucketSpectraS3(deleteBucketRequest)
+		return nil // just use existing bucket; don't delete and recreate
 	}
 
 	console.Eraseline()
