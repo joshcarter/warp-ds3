@@ -6,6 +6,7 @@ import (
 	"github.com/SpectraLogic/ds3_go_sdk/ds3/models"
 	"github.com/SpectraLogic/ds3_go_sdk/helpers"
 	"github.com/joshcarter/warp-ds3/pkg/generator"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -101,7 +102,9 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 						for x, curChunk := range chunksReadyResponse.MasterObjectList.Objects {
 							for y, curObj := range curChunk.Objects {
 								fmt.Printf("- chunk %d of %d, object %d of %d\n", x+1, len(chunksReadyResponse.MasterObjectList.Objects), y+1, len(curChunk.Objects))
-								reader := helpers.NewIoReaderWithSizeDecorator(objs[*curObj.Name].Reader, objs[*curObj.Name].Size)
+								r := objs[*curObj.Name].Reader
+								r.Seek(curObj.Offset, io.SeekStart)
+								reader := helpers.NewIoReaderWithSizeDecorator(r, curObj.Length)
 
 								fmt.Printf("- sending '%s' offset %d length %d\n", *curObj.Name, curObj.Offset, curObj.Length)
 								putObjRequest := models.NewPutObjectRequest(u.Bucket, *curObj.Name, reader).
