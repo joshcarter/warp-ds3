@@ -2,6 +2,7 @@ package bench
 
 import (
 	"context"
+	"fmt"
 	"github.com/SpectraLogic/ds3_go_sdk/ds3/models"
 	"github.com/SpectraLogic/ds3_go_sdk/helpers"
 	"github.com/joshcarter/warp-ds3/pkg/generator"
@@ -79,6 +80,8 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 				curChunkCount := 0
 
 				for curChunkCount < totalChunkCount {
+					fmt.Println("chunk %d of %d\n", curChunkCount, totalChunkCount)
+
 					// Get the list of available chunks that the server can receive. The server may
 					// not be able to receive everything, so not all chunks will necessarily be
 					// returned
@@ -91,12 +94,16 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 					// Check to see if any chunks can be processed
 					numberOfChunks := len(chunksReadyResponse.MasterObjectList.Objects)
 					if numberOfChunks > 0 {
+						fmt.Println("number of chunks: %d\n", numberOfChunks)
+
 						// Loop through all the chunks that are available for processing, and send
 						// the files that are contained within them.
-						for _, curChunk := range chunksReadyResponse.MasterObjectList.Objects {
-							for _, curObj := range curChunk.Objects {
+						for x, curChunk := range chunksReadyResponse.MasterObjectList.Objects {
+							for y, curObj := range curChunk.Objects {
+								fmt.Println("chunk %d of %d, object %d of %d\n", x, numberOfChunks, y, len(curChunk.Objects))
 								reader := helpers.NewIoReaderWithSizeDecorator(objs[*curObj.Name].Reader, objs[*curObj.Name].Size)
 
+								fmt.Println("sending '%s' offset %d length %d\n", *curObj.Name, curObj.Offset, curObj.Length)
 								putObjRequest := models.NewPutObjectRequest(u.Bucket, *curObj.Name, reader).
 									WithJob(chunksReadyResponse.MasterObjectList.JobId).
 									WithOffset(curObj.Offset)
@@ -127,6 +134,6 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 }
 
 // Cleanup deletes everything uploaded to the bucket.
-func (u *BulkPut) Cleanup(ctx context.Context) {
+func (u *BulkPut) Cleanup(context.Context) {
 	// u.deleteAllInBucket(ctx)
 }
