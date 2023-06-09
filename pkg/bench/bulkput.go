@@ -98,8 +98,8 @@ func (u *BulkPut) Start(ctx context.Context, wait chan struct{}) (Operations, er
 
 						// Loop through all the chunks that are available for processing, and send
 						// the files that are contained within them.
-						for x, curChunk := range chunksReadyResponse.MasterObjectList.Objects {
-							for y, curObj := range curChunk.Objects {
+						for _, curChunk := range chunksReadyResponse.MasterObjectList.Objects {
+							for _, curObj := range curChunk.Objects {
 								// fmt.Printf("- chunk %d of %d, object %d of %d\n", x+1, len(chunksReadyResponse.MasterObjectList.Objects), y+1, len(curChunk.Objects))
 								r := objs[*curObj.Name].Reader
 								r.Seek(curObj.Offset, io.SeekStart)
