@@ -32,6 +32,7 @@ type Options struct {
 	customPrefix string
 	csv          CsvOpts
 	random       RandomOpts
+	pattern      PatternOpts
 	randomPrefix int
 }
 
@@ -54,6 +55,7 @@ func defaultOptions() Options {
 		totalSize:    1 << 20,
 		csv:          csvOptsDefaults(),
 		random:       randomOptsDefaults(),
+		pattern:      patternOptsDefaults(),
 		randomPrefix: 0,
 	}
 	return o

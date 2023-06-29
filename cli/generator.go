@@ -23,9 +23,8 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/minio/mc/pkg/probe"
-
 	"github.com/minio/cli"
+	"github.com/minio/mc/pkg/probe"
 	"github.com/minio/warp/pkg/generator"
 )
 
@@ -74,6 +73,8 @@ func newGenSource(ctx *cli.Context, sizeField string) func() generator.Source {
 		g = generator.WithRandomData()
 	case "csv":
 		g = generator.WithCSV().Size(25, 1000)
+	case "pattern":
+		g = generator.WithPattern()
 	default:
 		err := errors.New("unknown generator type:" + ctx.String("obj.generator"))
 		fatal(probe.NewError(err), "Invalid -generator parameter")
