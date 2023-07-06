@@ -38,6 +38,11 @@ var genFlags = []cli.Flag{
 		Name:  "obj.randsize",
 		Usage: "Randomize size of objects so they will be up to the specified size",
 	},
+	cli.IntFlag{
+		Name:  "obj.compressibility",
+		Value: 50,
+		Usage: "Set the compressibility of the pattern data generator (0 to 100)",
+	},
 }
 
 func newGenSourceCSV(ctx *cli.Context) func() generator.Source {
@@ -74,7 +79,7 @@ func newGenSource(ctx *cli.Context, sizeField string) func() generator.Source {
 	case "csv":
 		g = generator.WithCSV().Size(25, 1000)
 	case "pattern":
-		g = generator.WithPattern()
+		g = generator.WithPattern().Compressibility(float32(ctx.Int("obj.compressibility")) / 100.0)
 	default:
 		err := errors.New("unknown generator type:" + ctx.String("obj.generator"))
 		fatal(probe.NewError(err), "Invalid -generator parameter")
